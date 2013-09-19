@@ -23,7 +23,7 @@ public class JobTester {
 		map.put("output.key.class", "org.apache.hadoop.io.Text");
 		map.put("output.value.class", "org.apache.hadoop.io.IntWritable");
 		
-		HadoopTester tester = new HadoopTester();
+		HadoopRunner tester = new HadoopRunner();
 		tester.dynamicJob(map);
 		
 		System.out.println("End test");

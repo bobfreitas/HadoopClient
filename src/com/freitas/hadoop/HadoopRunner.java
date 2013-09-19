@@ -13,9 +13,9 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class HadoopTester {
+public class HadoopRunner {
 	
-	private static final Logger log = LoggerFactory.getLogger(HadoopTester.class);
+	private static final Logger log = LoggerFactory.getLogger(HadoopRunner.class);
 	
 	@SuppressWarnings("rawtypes")
 	public void dynamicJob(Map<String, String> map) throws Exception {
