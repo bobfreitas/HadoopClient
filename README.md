@@ -1,10 +1,12 @@
 HadoopClient
 ============
 
-Client to experiment with submitting Hadoop and Pig jobs to a cluster.  
-It is based on Hadoop 1.0.4 and Pig 0.11.0.  It is intended to provide 
-examples of how to submit jobs from a client application in Java.  
+Client to be able to submit dynamic jobs to a cluster.  The basic idea 
+is to use reflections in a generic job running class.  You would pass in 
+a set of parameters of strings, and then it would use reflection to load 
+the actual classes from the strings.  
 
-None of the command line options have been built out.  It is intended 
-to be run in Eclipse to allow for easy debugging.  In addition, it may
-require some additional runtime libraries.  
+The example code was kept simple to illustrate the basic concept.  An actual
+implementation in a production system would need to be much more complicated.  
+
+This was done with CDH 4.3 and Eclipse.  

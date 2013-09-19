@@ -1,48 +1,32 @@
 package com.freitas.hadoop;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class JobTester {
 	
-private static final Logger log = LoggerFactory.getLogger(JobTester.class);
 	
 	public static void main(String[] args) throws Exception {
-		log.error("Start test");
 		
-		boolean pigRunner = true;
-		if (pigRunner){
-			PigRunnerTester tester = new PigRunnerTester();
-			String relScript = "resources" + File.separator + "pig" + File.separator + "maxWeather.pig";
-			File relScriptFile = new File(relScript);
-			String absFilePath = relScriptFile.getAbsolutePath();
-			tester.runSimpleScript(absFilePath);
-		}
+		System.out.println("Start test");
 		
-		boolean pigServer = false;
-		if (pigServer){
-			PigServerTester tester = new PigServerTester();
-			String script = "resources" + File.separator + "pig" + File.separator + "maxWeather.pig";
-			InputStream in = new FileInputStream(script);
-			tester.runQueryStream(in);
-		}
+		// create a map with all of your job parameters
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("hadoop.conf.dir", "/etc/hadoop");
+		map.put("source.jar", "lib/hadoop-examples-2.0.0-mr1-cdh4.3.0.jar");
+		map.put("job.name", "Dynamic WordCount");
+		map.put("input.dir", "word-count-in");
+		map.put("output.dir", "word-count-out");
+		map.put("mapper.class", "org.apache.hadoop.examples.WordCount$TokenizerMapper");
+		map.put("reducer.class", "org.apache.hadoop.examples.WordCount$IntSumReducer");
+		map.put("output.key.class", "org.apache.hadoop.io.Text");
+		map.put("output.value.class", "org.apache.hadoop.io.IntWritable");
 		
-		boolean cliStyle = false;
-		if (cliStyle){
-			HadoopTester tester = new HadoopTester();
-			tester.cliStyleJob();
-		}
-		boolean dynamicJob = false;
-		if (dynamicJob) {
-			HadoopTester tester = new HadoopTester();
-			tester.dynamicJob();
-		}
+		HadoopTester tester = new HadoopTester();
+		tester.dynamicJob(map);
 		
-		log.error("End test");
+		System.out.println("End test");
 	}
 	
 

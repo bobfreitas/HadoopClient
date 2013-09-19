@@ -1,123 +1,66 @@
 package com.freitas.hadoop;
 
 import java.io.File;
+import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.DoubleWritable;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-
-import com.freitas.hadoop.jobs.TextExtractor.MapClass;
-import com.freitas.hadoop.jobs.TextExtractor.Reduce;
-import com.freitas.hadoop.jobs.WholeFileInputFormat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HadoopTester {
 	
-	String path = "/usr/local/hadoop-1.0.4";
-	private String IN_DIR = "/user/someone/extract/in";
-	private String OUT_DIR = "/user/someone/extract/out";
-
-	public void cliStyleJob() throws Exception {
-		
-		Configuration conf = new Configuration();
-		Path hadoopConfig = new Path(path + "/conf/core-site.xml");
-		conf.addResource(hadoopConfig);
-		conf.addResource(new Path(path + "/conf/hdfs-site.xml"));
-		conf.addResource(new Path(path + "/conf/mapred-site.xml"));
-
-		Job job = new Job(conf, "TextExtractor");
-		job.setJarByClass(MapClass.class);
-
-		job.setOutputKeyClass(Text.class);
-		job.setOutputValueClass(DoubleWritable.class);
-		job.setInputFormatClass(WholeFileInputFormat.class);
-		job.setMapperClass(MapClass.class);
-		job.setCombinerClass(Reduce.class);
-		job.setReducerClass(Reduce.class);
-
-		FileInputFormat.setInputPaths(job, new Path(IN_DIR));
-		FileOutputFormat.setOutputPath(job, new Path(OUT_DIR));
-
-		// Submit the job
-		try {
-			job.submit();
-		} catch (ClassNotFoundException e) {
-			// FIXME: do something better here
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// FIXME: do something better here
-			e.printStackTrace();
-		}
-
-	}
-
-
-
+	private static final Logger log = LoggerFactory.getLogger(HadoopTester.class);
+	
 	@SuppressWarnings("rawtypes")
-	public void dynamicJob() throws Exception {
+	public void dynamicJob(Map<String, String> map) throws Exception {
 		
-		System.setProperty("javax.xml.parsers.DocumentBuilderFactory",
-				"com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl");
-
+		String path = map.get("hadoop.conf.dir");
 		Configuration conf = new Configuration();
 		Path hadoopConfig = new Path(path + "/conf/core-site.xml");
 		conf.addResource(hadoopConfig);
 		conf.addResource(new Path(path + "/conf/hdfs-site.xml"));
 		conf.addResource(new Path(path + "/conf/mapred-site.xml"));
 		
-		/*
-		 * This assumes that the job related classes have been separated into an independent 
-		 * jar that can then be submitted with the job (not included in this project)
-		 */
-		String sourceJar = "/user/someone/lib/JobStuff.jar";
+		// need to include the JAR with code to send to data nodes
+		String sourceJar = map.get("source.jar");
 		File jarFile = new File(sourceJar);
 		sourceJar = jarFile.toURI().toURL().toExternalForm();
 		conf.set("mapred.jar", sourceJar);
 
-		Job job = new Job(conf, "TextExtractor");
+		// This is where you can dynamically submit any job you want
+		// by changing your input strings.  Of cource, this can get 
+		// very complex with a series if-then-elses to check for different 
+		// params but this should give you the idea.
+		Job job = new Job(conf, map.get("job.name"));
 
-		FileInputFormat.addInputPath(job, new Path(IN_DIR));
-		FileOutputFormat.setOutputPath(job, new Path(OUT_DIR));
+		FileInputFormat.addInputPath(job, new Path(map.get("input.dir")));
+		FileOutputFormat.setOutputPath(job, new Path(map.get("output.dir")));
 
-		String mapperClassName = "com.freitas.hadoop.jobs.TextExtractor$MapClass";
-		Class<Mapper> mapper = RunUtilities.tryToLoadClass(sourceJar, mapperClassName);
+		Class<Mapper> mapper = RunUtilities.tryToLoadClass(sourceJar, map.get("mapper.class"));
 		job.setMapperClass(mapper);
 
-		String reducerClassName = "com.freitas.hadoop.jobs.TextExtractor$Reduce";
-		Class<Reducer> reducer = RunUtilities.tryToLoadClass(sourceJar, reducerClassName);
+		Class<Reducer> reducer = RunUtilities.tryToLoadClass(sourceJar, map.get("reducer.class"));
 		job.setReducerClass(reducer);
 
-		String combinerClassName = "com.freitas.hadoop.jobs.TextExtractor$Reduce";
-		Class<Reducer> combiner = RunUtilities.tryToLoadClass(sourceJar, combinerClassName);
-		job.setCombinerClass(combiner);
-
-		String inputFormatClassName = "com.kitenga.entities.hadoop.WholeFileInputFormat";
-		Class<InputFormat> inputFormat = RunUtilities.tryToLoadClass(sourceJar, inputFormatClassName);
-		job.setInputFormatClass(inputFormat);
-
-		String outputKeyClassName = "org.apache.hadoop.io.Text";
-		Class<Class> outputKey = RunUtilities.tryToLoadClass(sourceJar, outputKeyClassName);
+		Class<Class> outputKey = RunUtilities.tryToLoadClass(sourceJar, map.get("output.key.class"));
 		job.setOutputKeyClass(outputKey);
 
-		String outputKeyValueName = "org.apache.hadoop.io.DoubleWritable";
-		Class<Class> outputValue = RunUtilities.tryToLoadClass(sourceJar, outputKeyValueName);
+		Class<Class> outputValue = RunUtilities.tryToLoadClass(sourceJar, map.get("output.value.class"));
 		job.setOutputValueClass(outputValue);
 		
 		// Submit the job
 		try {
 			job.submit();
 		} catch (ClassNotFoundException e) {
-			// FIXME: do something better here
-			e.printStackTrace();
+			log.error("ClassNotFoundException encountered", e);
 		} catch (InterruptedException e) {
-			// FIXME: do something better here
-			e.printStackTrace();
+			log.error("InterruptedException encountered", e);
 		}
 
 	}
