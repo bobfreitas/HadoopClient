@@ -8,11 +8,12 @@ the actual classes from the strings.
 
 The example code was kept simple to illustrate the basic concept.  An actual
 implementation in a production system would need to be much more complicated.  
+In fact, this approach can be used to create a web interface.  
 
 This was done with CDH 4.3 and Eclipse.  
 
 There is a supporting article on my website that discusses how this can be 
-used to create a Hadoop Web Interface, go the URL to learn more:
+used to create a Hadoop web interface, go the URL to learn more:
 
 http://www.lopakalogic.com/articles/hadoop-articles/hadoop-web-interface/
 
